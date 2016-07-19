@@ -142,6 +142,7 @@ public class DataHelper {
                     set.add(null);
                     set.add(1);
                     set.add("end");
+                    o = set;
                     break;
                 }
                 case BIG_DECIMAL: {
