@@ -18,6 +18,9 @@ import java.util.zip.DeflaterOutputStream;
 import java.util.zip.InflaterInputStream;
 
 public class ProtoStuffMarshaller {
+    static final int BUFFER_SIZE = Integer.getInteger("protostuff.buffer_size", 
+            LinkedBuffer.DEFAULT_BUFFER_SIZE);
+    
     public static void main(String[] args) throws IOException, IllegalAccessException {
         MarshallerParameters cfg = new MarshallerParameters();
         OptionsHelper.jcommander(args, cfg, "");
@@ -64,14 +67,15 @@ public class ProtoStuffMarshaller {
                                 ArrayList<Long> compressed_size,
                                 boolean unmarshall, boolean dump, IdStrategy idStrategy) throws IOException {
         int num = 0;
+        Schema<Foo> schema = RuntimeSchema.getSchema(Foo.class, idStrategy);
+        final LinkedBuffer buffer = LinkedBuffer.allocate(BUFFER_SIZE);
+        byte[] bytes;
         for (Object o: objectArrayList) {
             Foo foo = new Foo(o);
-            Schema schema = RuntimeSchema.getSchema(Foo.class, idStrategy);
-            LinkedBuffer buffer = LinkedBuffer.allocate();
-            byte[] bytes = ProtostuffIOUtil.toByteArray(foo, schema, buffer);
+            bytes = ProtostuffIOUtil.toByteArray(foo, schema, buffer.clear());
             //byte[] compressed = compressDeflate(bytes);
             //bytes = compressed;
-            buffer.clear();
+
             compressed_size.add((long) bytes.length);
             if (dump && num == 0 && bytes.length>0) {
                 HexDump.dump(bytes, 0, System.err, 0);
@@ -83,7 +87,7 @@ public class ProtoStuffMarshaller {
             if (unmarshall){
                 //byte[] deCompressed = deCompressDeflate(bytes);
                 //bytes = deCompressed;
-                Object ignore = schema.newMessage();
+                Foo ignore = schema.newMessage();
                 ProtostuffIOUtil.mergeFrom(bytes, ignore, schema);
 
                 ObjectEquals.assertEquals(foo.getObject(), ((Foo) ignore).getObject());

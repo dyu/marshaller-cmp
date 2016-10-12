@@ -47,5 +47,65 @@
         </dependency>
     </dependencies>
 
-
+  <properties>
+    <jwd>package</jwd>
+  </properties>
+  
+  <profiles>
+    <profile>
+      <id>jwd</id>
+      <build>
+        <plugins>
+          <plugin>
+            <artifactId>maven-antrun-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>rmjar</id>
+                <phase>validate</phase>
+                <goals>
+                  <goal>run</goal>
+                </goals>
+                <configuration>
+                  <tasks>
+                    <delete quiet="true">
+                      <fileset dir="target" includes="ignite-marshaller*.jar"/>
+                    </delete>
+                  </tasks>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-assembly-plugin</artifactId>
+            <version>2.4</version>
+            <configuration>
+              <descriptorRefs>
+                <descriptorRef>jar-with-dependencies</descriptorRef>
+              </descriptorRefs>
+               <archive>
+                <manifest>
+                  <mainClass>example.perf.ignite.IgniteMarshaller</mainClass>
+                </manifest>
+                <manifestEntries>
+                  <implementation-version>${project.version}</implementation-version>
+                </manifestEntries>
+              </archive>
+              <finalName>ignite-marshaller</finalName>
+              <appendAssemblyId>false</appendAssemblyId> 
+            </configuration>
+            <executions>
+              <execution>
+                <id>make-assembly</id>
+                <phase>${jwd}</phase>
+                <goals>
+                  <goal>single</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
 </project>
